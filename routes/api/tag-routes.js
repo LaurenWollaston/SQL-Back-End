@@ -26,9 +26,28 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', (req, res) => {
-  // find a single tag by its `id`
-  // be sure to include its associated Product data
+router.get('/:id', async (req, res) => {
+  try {
+    var { id } = req.params;
+    const tags = await Tag.findAll({
+      where: { id },
+      include: [
+        {
+          model: Product,
+          through: {
+            model: ProductTag,
+            attributes: [] // Exclude join table attributes
+          },
+          attributes: ['id', 'product_name', 'stock', 'price'],
+          as: 'products'
+        },
+      ],
+    });
+    res.json(tags);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server Error' });
+  }
 });
 
 router.post('/', (req, res) => {
